@@ -4,7 +4,8 @@ use std::path::Path;
 use std::ptr;
 use std::sync::Mutex;
 
-use binseq::{MmapReader, RefRecord};
+use binseq::bq::{MmapReader, RefRecord};
+use binseq::{BinseqRecord as BinseqRefRecord};
 
 // This will setup a global error message
 static LAST_ERROR: Mutex<Option<CString>> = Mutex::new(None);
@@ -243,7 +244,7 @@ pub unsafe extern "C" fn binseq_record_is_paired(record: *const BinseqRecord) ->
         return false;
     }
     match (*record).as_ref() {
-        Some(r) => r.paired(),
+        Some(r) => r.is_paired(),
         None => false,
     }
 }

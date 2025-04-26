@@ -1,5 +1,7 @@
-use binseq::{MmapReader, RefRecord as BinseqRefRecord};
+use binseq::bq::{MmapReader, RefRecord as BinseqRefRecord};
 use std::path::Path;
+use binseq::BinseqRecord;
+use binseq::bq::BinseqHeader;
 
 // Create wrapper types for the binseq library
 pub struct BinseqReaderWrapper {
@@ -30,6 +32,9 @@ mod ffi {
         fn get_slen(self: &BinseqReaderWrapper) -> u32;
         fn get_xlen(self: &BinseqReaderWrapper) -> u32;
 
+        // TODO: revist offset exposure
+        fn bases_offset(self: &BinseqReaderWrapper) -> u64;
+
         // Record methods
         fn get_flag(self: &RecordWrapper<'_>) -> u64;
         fn is_paired(self: &RecordWrapper<'_>) -> bool;
@@ -46,6 +51,16 @@ pub fn open_mmap_reader(path: &str) -> binseq::Result<Box<BinseqReaderWrapper>> 
 
 // Implementation for BinseqReaderWrapper
 impl BinseqReaderWrapper {
+
+    // bases_offset
+    pub fn bases_offset(&self) -> u64 {
+        // Get the header size (which is 32 bytes based on the struct definition)
+        let header_size = std::mem::size_of::<BinseqHeader>() as u64;
+        
+        // The base sequences start after the header
+        header_size
+    }
+
     pub fn num_records(&self) -> usize {
         self.reader.num_records()
     }
@@ -71,7 +86,7 @@ impl<'a> RecordWrapper<'a> {
     }
 
     pub fn is_paired(&self) -> bool {
-        self.record.paired()
+        self.record.is_paired()
     }
 
     pub fn slen(&self) -> usize {
